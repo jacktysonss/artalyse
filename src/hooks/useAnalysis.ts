@@ -1,19 +1,21 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { AnalysisResult } from "@/lib/types";
+import type { AnalysisResult, TokenUsage } from "@/lib/types";
 
 export function useAnalysis() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [rawText, setRawText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
 
   const analyze = useCallback(async (image: File) => {
     setIsLoading(true);
     setError(null);
     setRawText("");
     setResult(null);
+    setTokenUsage(null);
 
     try {
       const formData = new FormData();
@@ -52,6 +54,10 @@ export function useAnalysis() {
                 setError(parsed.error);
                 continue;
               }
+              if (parsed.usage) {
+                setTokenUsage(parsed.usage as TokenUsage);
+                continue;
+              }
               if (parsed.text) {
                 accumulated += parsed.text;
                 setRawText(accumulated);
@@ -65,10 +71,11 @@ export function useAnalysis() {
 
       // Parse the complete JSON
       try {
-        // Strip markdown code fences if present
         let jsonStr = accumulated.trim();
         if (jsonStr.startsWith("```")) {
-          jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+          jsonStr = jsonStr
+            .replace(/^```(?:json)?\n?/, "")
+            .replace(/\n?```$/, "");
         }
         const parsed = JSON.parse(jsonStr) as AnalysisResult;
         setResult(parsed);
@@ -82,5 +89,5 @@ export function useAnalysis() {
     }
   }, []);
 
-  return { result, rawText, isLoading, error, analyze };
+  return { result, rawText, isLoading, error, tokenUsage, analyze };
 }

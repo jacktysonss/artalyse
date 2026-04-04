@@ -41,8 +41,13 @@ export interface AnalysisResult {
   appGuidance: {
     adobeFresco: AppGuidance;
     procreate: AppGuidance;
-    clipStudioPaint: AppGuidance;
   };
+}
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  model: string;
 }
 
 export interface SavedAnalysis {
@@ -50,5 +55,6 @@ export interface SavedAnalysis {
   imageBlob: Blob;
   analysis: AnalysisResult;
   savedAt: number;
+  tokenUsage?: TokenUsage;
   thumbnailUrl?: string; // transient, created from imageBlob at runtime
 }

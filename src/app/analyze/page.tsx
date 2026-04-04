@@ -7,14 +7,15 @@ import { AnalysisCard } from "@/components/AnalysisCard";
 import { RecreationGuide } from "@/components/RecreationGuide";
 import { AppAdvice } from "@/components/AppAdvice";
 import { LoadingAnalysis } from "@/components/LoadingAnalysis";
+import { TokenDebug } from "@/components/TokenDebug";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { saveAnalysis, getSavedById } from "@/lib/storage";
-import type { AnalysisResult } from "@/lib/types";
+import type { AnalysisResult, TokenUsage } from "@/lib/types";
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { result, isLoading, error, analyze } = useAnalysis();
+  const { result, isLoading, error, tokenUsage, analyze } = useAnalysis();
   const [preview, setPreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
@@ -23,10 +24,12 @@ function AnalyzeContent() {
 
   // For loaded saved analyses
   const [savedResult, setSavedResult] = useState<AnalysisResult | null>(null);
+  const [savedTokenUsage, setSavedTokenUsage] = useState<TokenUsage | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const activeResult = savedResult || result;
+  const activeTokenUsage = savedTokenUsage || tokenUsage;
 
   // Load image from various sources
   useEffect(() => {
@@ -42,6 +45,7 @@ function AnalyzeContent() {
             setImageBlob(saved.imageBlob);
             setPreview(URL.createObjectURL(saved.imageBlob));
             setSavedResult(saved.analysis);
+            if (saved.tokenUsage) setSavedTokenUsage(saved.tokenUsage);
             setIsSaved(true);
             hasStarted.current = true;
             return;
@@ -103,6 +107,7 @@ function AnalyzeContent() {
       setImageBlob(file);
       setPreview(URL.createObjectURL(file));
       setSavedResult(null);
+      setSavedTokenUsage(null);
       setIsSaved(false);
       hasStarted.current = true;
       analyze(file);
@@ -116,14 +121,14 @@ function AnalyzeContent() {
 
     setIsSaving(true);
     try {
-      await saveAnalysis(imageBlob, analysisToSave);
+      await saveAnalysis(imageBlob, analysisToSave, activeTokenUsage ?? undefined);
       setIsSaved(true);
     } catch (e) {
       console.error("Failed to save:", e);
     } finally {
       setIsSaving(false);
     }
-  }, [activeResult, imageBlob]);
+  }, [activeResult, activeTokenUsage, imageBlob]);
 
   return (
     <>
@@ -233,6 +238,13 @@ function AnalyzeContent() {
               <div className="border-t border-border pt-8">
                 <AppAdvice guidance={activeResult.appGuidance} />
               </div>
+
+              {/* Token usage debug */}
+              {activeTokenUsage && (
+                <div className="border-t border-border pt-6">
+                  <TokenDebug usage={activeTokenUsage} />
+                </div>
+              )}
 
               <div className="border-t border-border pt-6 pb-8 text-center">
                 <button

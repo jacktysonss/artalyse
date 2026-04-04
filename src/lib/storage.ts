@@ -1,4 +1,4 @@
-import type { AnalysisResult, SavedAnalysis } from "./types";
+import type { AnalysisResult, SavedAnalysis, TokenUsage } from "./types";
 
 const DB_NAME = "artalyse";
 const DB_VERSION = 1;
@@ -30,7 +30,8 @@ function tx(
 
 export async function saveAnalysis(
   imageBlob: Blob,
-  analysis: AnalysisResult
+  analysis: AnalysisResult,
+  tokenUsage?: TokenUsage
 ): Promise<string> {
   const db = await openDB();
   const id = crypto.randomUUID();
@@ -39,6 +40,7 @@ export async function saveAnalysis(
     imageBlob,
     analysis,
     savedAt: Date.now(),
+    tokenUsage,
   };
 
   return new Promise((resolve, reject) => {
