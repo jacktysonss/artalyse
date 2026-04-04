@@ -33,9 +33,9 @@ const glossary: Record<string, GlossaryEntry> = {
   "motion filtering": {
     term: "Motion Filtering",
     definition:
-      "A Procreate stabilization setting that removes small hand tremors from your strokes. Unlike StreamLine, it focuses on filtering out jitter rather than smoothing the overall path.",
+      "A Procreate stabilization setting that removes small hand tremors by deleting wobble extremities rather than averaging them. It also has an Expression slider to put expressive variation back into filtered strokes.",
     location:
-      "Procreate: Tap a brush to open Brush Studio > Stabilization section (left sidebar). Motion Filtering is below StreamLine with its own Amount slider.",
+      "Procreate: Brush Studio > Stabilization (left sidebar). Motion Filtering has Amount and Expression sliders, below StreamLine. Can also be set globally at Actions (wrench) > Prefs > Pressure and Smoothing.",
   },
   smoothing: {
     term: "Smoothing",
@@ -173,16 +173,16 @@ const glossary: Record<string, GlossaryEntry> = {
   "color picker": {
     term: "Color Picker / Eyedropper",
     definition:
-      "A tool that samples a color from your canvas so you can paint with that exact color.",
+      "A tool that samples a color from your canvas so you can paint with that exact color. A magnifying loupe appears showing the sampled color on the bottom and your current color on top.",
     location:
-      "Fresco: Touch and hold on the canvas to activate the eyedropper (a magnified circle appears). Or use the eyedropper tool in the left toolbar. On Apple Pencil Pro, you can map the squeeze gesture to eyedropper in Settings. The full color picker is the circle at the bottom of the left toolbar. Procreate: Touch and hold on the canvas with your finger (not pencil) to pick a color. Or tap and hold the color circle (top right) to see recent colors. The color circle opens the full color picker.",
+      "Fresco: Touch and hold on the canvas (a magnified circle appears). Or use the eyedropper tool in the left toolbar. The full color picker is the circle at the bottom of the left toolbar. Procreate: Touch and hold on the canvas with your FINGER (not pencil). Or tap the small square between the size/opacity sliders on the left side. The color circle (top right) opens the full color picker.",
   },
   "quick shape": {
     term: "QuickShape",
     definition:
-      "A Procreate feature that auto-corrects your drawn shapes into clean geometric forms.",
+      "A Procreate feature that auto-corrects your drawn shapes into clean geometric forms. Works for lines, circles, rectangles, triangles, and arcs.",
     location:
-      "Procreate: Draw any shape (line, circle, rectangle, triangle, arc) and hold your pencil down at the end of the stroke without lifting. After a moment, Procreate snaps it to a perfect shape. While still holding, place a finger on the screen to constrain proportions (perfect circle, straight line, etc.).",
+      "Procreate: Draw any shape and hold your pencil down at the end of the stroke (don't lift). It snaps to a clean shape. Place a finger while holding to constrain (perfect circle, straight line). Then tap 'Edit Shape' at the top of the screen to refine further.",
   },
   "live brushes": {
     term: "Live Brushes",
