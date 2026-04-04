@@ -44,3 +44,11 @@ export interface AnalysisResult {
     clipStudioPaint: AppGuidance;
   };
 }
+
+export interface SavedAnalysis {
+  id: string;
+  imageBlob: Blob;
+  analysis: AnalysisResult;
+  savedAt: number;
+  thumbnailUrl?: string; // transient, created from imageBlob at runtime
+}

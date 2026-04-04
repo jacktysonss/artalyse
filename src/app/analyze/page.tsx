@@ -8,6 +8,8 @@ import { RecreationGuide } from "@/components/RecreationGuide";
 import { AppAdvice } from "@/components/AppAdvice";
 import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { useAnalysis } from "@/hooks/useAnalysis";
+import { saveAnalysis, getSavedById } from "@/lib/storage";
+import type { AnalysisResult } from "@/lib/types";
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
@@ -15,14 +17,40 @@ function AnalyzeContent() {
   const { result, isLoading, error, analyze } = useAnalysis();
   const [preview, setPreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const hasStarted = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // For loaded saved analyses
+  const [savedResult, setSavedResult] = useState<AnalysisResult | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const activeResult = savedResult || result;
 
   // Load image from various sources
   useEffect(() => {
     if (hasStarted.current) return;
 
     const loadImage = async () => {
+      // From saved analysis
+      const savedId = searchParams.get("saved");
+      if (savedId) {
+        try {
+          const saved = await getSavedById(savedId);
+          if (saved) {
+            setImageBlob(saved.imageBlob);
+            setPreview(URL.createObjectURL(saved.imageBlob));
+            setSavedResult(saved.analysis);
+            setIsSaved(true);
+            hasStarted.current = true;
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to load saved analysis:", e);
+        }
+      }
+
       const source = searchParams.get("source");
 
       // From share target (service worker cached)
@@ -36,6 +64,7 @@ function AnalyzeContent() {
               type: blob.type || "image/jpeg",
             });
             setImageFile(file);
+            setImageBlob(blob);
             setPreview(URL.createObjectURL(blob));
             hasStarted.current = true;
             analyze(file);
@@ -53,6 +82,7 @@ function AnalyzeContent() {
           .__artalyse_image;
         if (stored) {
           setImageFile(stored);
+          setImageBlob(stored);
           setPreview(URL.createObjectURL(stored));
           hasStarted.current = true;
           analyze(stored);
@@ -70,12 +100,30 @@ function AnalyzeContent() {
       const file = e.target.files?.[0];
       if (!file) return;
       setImageFile(file);
+      setImageBlob(file);
       setPreview(URL.createObjectURL(file));
+      setSavedResult(null);
+      setIsSaved(false);
       hasStarted.current = true;
       analyze(file);
     },
     [analyze]
   );
+
+  const handleSave = useCallback(async () => {
+    const analysisToSave = activeResult;
+    if (!analysisToSave || !imageBlob) return;
+
+    setIsSaving(true);
+    try {
+      await saveAnalysis(imageBlob, analysisToSave);
+      setIsSaved(true);
+    } catch (e) {
+      console.error("Failed to save:", e);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [activeResult, imageBlob]);
 
   return (
     <>
@@ -125,14 +173,65 @@ function AnalyzeContent() {
 
           {isLoading && <LoadingAnalysis />}
 
-          {result && (
+          {activeResult && (
             <div className="space-y-8">
-              <AnalysisCard result={result} />
+              {/* Save button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaved || isSaving}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isSaved
+                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : "bg-accent/20 text-accent-light hover:bg-accent/30 border border-accent/30"
+                  }`}
+                >
+                  {isSaved ? (
+                    <>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Saved
+                    </>
+                  ) : isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                      </svg>
+                      Save Analysis
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <AnalysisCard result={activeResult} />
               <div className="border-t border-border pt-8">
-                <RecreationGuide guide={result.recreationGuide} />
+                <RecreationGuide guide={activeResult.recreationGuide} />
               </div>
               <div className="border-t border-border pt-8">
-                <AppAdvice guidance={result.appGuidance} />
+                <AppAdvice guidance={activeResult.appGuidance} />
               </div>
 
               <div className="border-t border-border pt-6 pb-8 text-center">
@@ -146,7 +245,7 @@ function AnalyzeContent() {
             </div>
           )}
 
-          {!isLoading && !result && !error && !preview && (
+          {!isLoading && !activeResult && !error && !preview && (
             <div className="flex flex-col items-center justify-center h-full text-center py-20">
               <p className="text-muted text-lg mb-2">
                 Share or upload an artwork to get started

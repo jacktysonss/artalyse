@@ -30,6 +30,14 @@ export function Header() {
           <span className="text-lg font-semibold tracking-tight">Artalyse</span>
         </Link>
 
+        <div className="flex items-center gap-3">
+          <Link
+            href="/saved"
+            className="text-sm text-muted hover:text-foreground transition-colors"
+          >
+            Saved
+          </Link>
+
         {!isInstalled && canInstall && (
           <button
             onClick={install}
@@ -47,6 +55,7 @@ export function Header() {
             Add to Home Screen
           </button>
         )}
+        </div>
       </header>
 
       {/* iOS install guide modal */}
