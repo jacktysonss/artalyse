@@ -8,12 +8,10 @@ import { usePWA } from "@/hooks/usePWA";
 
 export default function Home() {
   const router = useRouter();
-  const { isInstalled } = usePWA();
+  const { isInstalled, isIOS } = usePWA();
 
   const handleImageSelected = useCallback(
-    (file: File, _preview: string) => {
-      // Store file in sessionStorage-like approach using a global
-      // (sessionStorage can't store Files, so we use a module-level store)
+    (file: File) => {
       if (typeof window !== "undefined") {
         (window as unknown as Record<string, File>).__artalyse_image = file;
       }
@@ -32,7 +30,7 @@ export default function Home() {
             Analyze Any Artwork
           </h1>
           <p className="text-lg text-muted max-w-md mx-auto">
-            Share or upload artwork to discover the techniques used and learn how
+            Upload or paste artwork to discover the techniques used and learn how
             to recreate them.
           </p>
         </div>
@@ -41,13 +39,28 @@ export default function Home() {
 
         {!isInstalled && (
           <div className="mt-8 text-center text-sm text-muted max-w-sm">
-            <p className="mb-1 font-medium text-foreground/70">
-              Install for Share Integration
-            </p>
-            <p>
-              Install Artalyse to your home screen to share artwork directly
-              from apps like Behance, Instagram, and Pinterest.
-            </p>
+            {isIOS ? (
+              <>
+                <p className="mb-1 font-medium text-foreground/70">
+                  Save to Home Screen
+                </p>
+                <p>
+                  Tap the share button in Safari, then &quot;Add to Home Screen&quot; to
+                  use Artalyse as an app. Copy images from Behance and paste
+                  them here to analyze.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mb-1 font-medium text-foreground/70">
+                  Install for Share Integration
+                </p>
+                <p>
+                  Install Artalyse to your home screen to share artwork directly
+                  from apps like Behance, Instagram, and Pinterest.
+                </p>
+              </>
+            )}
           </div>
         )}
 

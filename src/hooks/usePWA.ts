@@ -11,13 +11,20 @@ export function usePWA() {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
+    // Check if already installed (standalone mode)
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setIsInstalled(true);
-      return;
     }
+
+    // Detect iOS
+    const ua = navigator.userAgent;
+    const isiOS =
+      /iPad|iPhone|iPod/.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    setIsIOS(isiOS);
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -40,5 +47,10 @@ export function usePWA() {
     setInstallPrompt(null);
   };
 
-  return { canInstall: !!installPrompt, isInstalled, install };
+  return {
+    canInstall: !!installPrompt,
+    isInstalled,
+    isIOS,
+    install,
+  };
 }
