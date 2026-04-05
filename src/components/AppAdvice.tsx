@@ -2,19 +2,18 @@
 
 import { useState } from "react";
 import type { AppGuidance } from "@/lib/types";
+import { GlossaryText } from "./GlossaryText";
 
 interface AppAdviceProps {
   guidance: {
     adobeFresco: AppGuidance;
     procreate: AppGuidance;
-    clipStudioPaint: AppGuidance;
   };
 }
 
 const tabs = [
   { key: "adobeFresco" as const, label: "Adobe Fresco" },
   { key: "procreate" as const, label: "Procreate" },
-  { key: "clipStudioPaint" as const, label: "Clip Studio" },
 ];
 
 export function AppAdvice({ guidance }: AppAdviceProps) {
@@ -23,7 +22,13 @@ export function AppAdvice({ guidance }: AppAdviceProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">App-Specific Guidance</h2>
+      <div>
+        <h2 className="text-xl font-semibold">App-Specific Guidance</h2>
+        <p className="text-xs text-muted mt-1">
+          <span className="border-b border-dotted border-accent-light/60">Dotted terms</span> have
+          definitions — tap or hover for details
+        </p>
+      </div>
 
       {/* Tab bar */}
       <div className="flex gap-1 p-1 rounded-xl bg-surface border border-border">
@@ -55,7 +60,7 @@ export function AppAdvice({ guidance }: AppAdviceProps) {
                 key={i}
                 className="text-sm px-3 py-1.5 rounded-lg bg-surface-light border border-border"
               >
-                {brush}
+                <GlossaryText text={brush} />
               </span>
             ))}
           </div>
@@ -68,16 +73,28 @@ export function AppAdvice({ guidance }: AppAdviceProps) {
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-muted mb-1">Pressure</p>
-              <p className="text-sm">{app.penSettings.pressure}</p>
+              <p className="text-xs text-muted mb-1">
+                <GlossaryText text="Pressure" />
+              </p>
+              <p className="text-sm">
+                <GlossaryText text={app.penSettings.pressure} />
+              </p>
             </div>
             <div>
-              <p className="text-xs text-muted mb-1">Tilt</p>
-              <p className="text-sm">{app.penSettings.tilt}</p>
+              <p className="text-xs text-muted mb-1">
+                <GlossaryText text="Tilt" />
+              </p>
+              <p className="text-sm">
+                <GlossaryText text={app.penSettings.tilt} />
+              </p>
             </div>
             <div>
-              <p className="text-xs text-muted mb-1">Smoothing / Stabilization</p>
-              <p className="text-sm">{app.penSettings.smoothing}</p>
+              <p className="text-xs text-muted mb-1">
+                <GlossaryText text="Smoothing / Stabilization" />
+              </p>
+              <p className="text-sm">
+                <GlossaryText text={app.penSettings.smoothing} />
+              </p>
             </div>
           </div>
         </div>
@@ -85,15 +102,17 @@ export function AppAdvice({ guidance }: AppAdviceProps) {
         {/* Layer Strategy */}
         <div className="rounded-xl bg-surface border border-border p-4">
           <h3 className="text-sm font-medium text-muted uppercase tracking-wider mb-2">
-            Layer Strategy
+            <GlossaryText text="Layer Strategy" />
           </h3>
-          <p className="text-sm leading-relaxed">{app.layerStrategy}</p>
+          <p className="text-sm leading-relaxed">
+            <GlossaryText text={app.layerStrategy} />
+          </p>
         </div>
 
         {/* Blending Modes */}
         <div className="rounded-xl bg-surface border border-border p-4">
           <h3 className="text-sm font-medium text-muted uppercase tracking-wider mb-2">
-            Blending Modes
+            <GlossaryText text="Blending Modes" />
           </h3>
           <div className="flex flex-wrap gap-2">
             {app.blendingModes.map((mode, i) => (
@@ -101,7 +120,7 @@ export function AppAdvice({ guidance }: AppAdviceProps) {
                 key={i}
                 className="text-sm px-3 py-1.5 rounded-lg bg-accent/10 text-accent-light border border-accent/20"
               >
-                {mode}
+                <GlossaryText text={mode} />
               </span>
             ))}
           </div>
@@ -118,7 +137,9 @@ export function AppAdvice({ guidance }: AppAdviceProps) {
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/20 text-accent-light flex items-center justify-center text-xs font-semibold">
                   {i + 1}
                 </span>
-                <span className="leading-relaxed pt-0.5">{step}</span>
+                <span className="leading-relaxed pt-0.5">
+                  <GlossaryText text={step} />
+                </span>
               </li>
             ))}
           </ol>

@@ -1,52 +1,55 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useImageIntake } from "@/hooks/useImageIntake";
 
 interface ImageIntakeProps {
-  onImageSelected: (file: File, preview: string) => void;
+  onImageSelected: (file: File) => void;
 }
 
 export function ImageIntake({ onImageSelected }: ImageIntakeProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const onImageSelectedRef = useRef(onImageSelected);
+  onImageSelectedRef.current = onImageSelected;
+
   const {
-    preview,
+    image,
     isDragging,
     onDragEnter,
     onDragLeave,
     onDragOver,
-    onDrop: originalOnDrop,
-    onFileSelect: originalOnFileSelect,
-    handleFile,
+    onDrop: hookOnDrop,
+    onFileSelect: hookOnFileSelect,
   } = useImageIntake();
 
-  const onDrop = (e: React.DragEvent) => {
-    originalOnDrop(e);
-    const file = e.dataTransfer.files[0];
-    if (file?.type.startsWith("image/")) {
-      onImageSelected(file, URL.createObjectURL(file));
+  // When the hook's image changes (e.g. from paste), forward it
+  useEffect(() => {
+    if (image) {
+      onImageSelectedRef.current(image);
     }
-  };
+  }, [image]);
 
-  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    originalOnFileSelect(e);
-    const file = e.target.files?.[0];
-    if (file) {
-      onImageSelected(file, URL.createObjectURL(file));
-    }
-  };
-
-  // Also intercept paste at the component level
-  const onPasteCapture = () => {
-    // The useImageIntake hook handles the paste event on document
-    // We need a small delay to let it process
-    setTimeout(() => {
-      if (preview) {
-        // This is tricky - paste is handled by the hook
-        // We'll use handleFile callback approach instead
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      hookOnDrop(e);
+      const file = e.dataTransfer.files[0];
+      if (file?.type.startsWith("image/")) {
+        onImageSelected(file);
       }
-    }, 100);
-  };
+    },
+    [hookOnDrop, onImageSelected]
+  );
+
+  const onFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      hookOnFileSelect(e);
+      const file = e.target.files?.[0];
+      if (file) {
+        onImageSelected(file);
+      }
+    },
+    [hookOnFileSelect, onImageSelected]
+  );
 
   return (
     <div
@@ -59,20 +62,17 @@ export function ImageIntake({ onImageSelected }: ImageIntakeProps) {
       onDragLeave={onDragLeave}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      onPaste={onPasteCapture}
       onClick={() => fileInputRef.current?.click()}
     >
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={onFileSelect}
         className="hidden"
       />
 
       <div className="flex flex-col items-center gap-6 p-8">
-        {/* Upload icon */}
         <div className="w-20 h-20 rounded-full bg-surface-light flex items-center justify-center">
           <svg
             width="36"
@@ -93,10 +93,10 @@ export function ImageIntake({ onImageSelected }: ImageIntakeProps) {
 
         <div className="text-center">
           <p className="text-lg font-medium mb-1">
-            Drop artwork here, or tap to upload
+            Drop artwork here, or tap to choose a photo
           </p>
           <p className="text-sm text-muted">
-            You can also paste an image from your clipboard
+            You can also copy an image and paste it here
           </p>
         </div>
 

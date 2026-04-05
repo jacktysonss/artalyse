@@ -3,6 +3,8 @@ import { ANALYSIS_SYSTEM_PROMPT, ANALYSIS_USER_PROMPT } from "@/lib/prompts";
 
 const client = new Anthropic();
 
+const MODEL = "claude-sonnet-4-20250514";
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
       | "image/gif";
 
     const stream = client.messages.stream({
-      model: "claude-sonnet-4-20250514",
+      model: MODEL,
       max_tokens: 4096,
       system: ANALYSIS_SYSTEM_PROMPT,
       messages: [
@@ -49,10 +51,21 @@ export async function POST(request: Request) {
     const readable = new ReadableStream({
       async start(controller) {
         stream.on("text", (text) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
+          );
         });
 
-        stream.on("end", () => {
+        stream.on("message", (message) => {
+          // Send token usage info at the end
+          const usage = {
+            inputTokens: message.usage?.input_tokens ?? 0,
+            outputTokens: message.usage?.output_tokens ?? 0,
+            model: MODEL,
+          };
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ usage })}\n\n`)
+          );
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
         });
